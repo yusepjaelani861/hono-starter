@@ -1,4 +1,40 @@
 services:
+  db:
+    image: mysql
+    restart: no
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+      MYSQL_RANDOM_ROOT_PASSWORD: "no"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - private
+
+  redis:
+    image: redis
+    # ports:
+      # - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - private
+
   app:
     build:
       context: .
@@ -39,42 +75,7 @@ services:
     networks:
       - public
       - private
-
-  db:
-    image: mysql
-    restart: no
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
-      MYSQL_RANDOM_ROOT_PASSWORD: "no"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - private
-
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - private
+    command: ["sh", "-c", "yarn db:migrate && yarn start"]
 
 volumes:
   mysql_data:

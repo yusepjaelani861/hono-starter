@@ -8,6 +8,7 @@ COPY . .
 
 RUN yarn install
 RUN yarn build
+RUN yarn db:generate
 
 RUN addgroup -g 1001 nodejs
 RUN adduser --system --uid 1001 hono
